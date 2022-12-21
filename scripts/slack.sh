@@ -12,7 +12,7 @@ if [ -n "$2" ]; then
   color=$2
 fi
 
-if [ color eq "good" ]; then
+if [ "$color" = "good" ]; then
   tag=$(git tag --points-at HEAD | sort -V | tail -n1)
   messageLine="com.cloudinary:cloudinary:$tag"
   message="payload={\"channel\": \"#$SLACK_CHANNEL\",\"attachments\":[{\"pretext\":\"$1\",\"text\":\"$messageLine\",\"color\":\"$color\"}]}"
@@ -20,4 +20,4 @@ else
   message="payload={\"channel\": \"#$SLACK_CHANNEL\",\"attachments\":[{\"pretext\":\"$1\",\"text\":\"\",\"color\":\"$color\"}]}"
 fi
 
-curl -X POST --data-urlencode "$message" ${SLACK_WEBHOOK_URL}
+curl -X POST --data-urlencode "$message" "$SLACK_WEBHOOK_URL"

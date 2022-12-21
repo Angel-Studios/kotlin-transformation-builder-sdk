@@ -68,7 +68,7 @@ workflows:
                   ./scripts/slack.sh "Failed to build $BITRISE_APP_TITLE"
                 else
                   echo "Sending slack notification for successful build"
-                  ./scripts/slack.sh "Successfully published Network modules"  "good"
+                  ./scripts/slack.sh "Successfully published $BITRISE_APP_TITLE modules"  "good"
                 fi
           is_always_run: true
           title: Notify failures to Slack
