@@ -13,8 +13,9 @@ if [ -n "$2" ]; then
 fi
 
 if [ "$color" = "good" ]; then
-  tag=$(git tag --points-at HEAD | sort -V | tail -n1)
-  messageLine="com.cloudinary:cloudinary:$tag"
+  tag=$(git tag | grep "$MAJOR.$MINOR" | sort -V | tail -n1 | cut -d'.' -f3)
+  tagVersion="${tag/release-/}"
+  messageLine="com.cloudinary:cloudinary:$tagVersion"
   message="payload={\"channel\": \"#$SLACK_CHANNEL\",\"attachments\":[{\"pretext\":\"$1\",\"text\":\"$messageLine\",\"color\":\"$color\"}]}"
 else
   message="payload={\"channel\": \"#$SLACK_CHANNEL\",\"attachments\":[{\"pretext\":\"$1\",\"text\":\"\",\"color\":\"$color\"}]}"
