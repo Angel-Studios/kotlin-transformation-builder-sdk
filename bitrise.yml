@@ -23,7 +23,7 @@ workflows:
                 
                 # Create a tag if one does not already exist for this commit
                 ./scripts/tag_branch.sh release
-  network-deploy:
+  release-deploy:
     description: Deploy a release
     steps:
       - activate-ssh-key@4:
