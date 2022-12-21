@@ -1,0 +1,74 @@
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: android
+trigger_map:
+- tag: release-*
+  workflow: release-deploy
+workflows:
+  tag-release:
+    description: Cut a tag to trigger a proper release
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6: { }
+      - script@1:
+          title: Tag If Needed
+          inputs:
+            - content: |
+                #!/usr/bin/env bash
+                # fail if any commands fails
+                set -e
+                # debug log
+                set -x
+                
+                # Create a tag if one does not already exist for this commit
+                ./scripts/tag_branch.sh release
+  network-deploy:
+    description: Deploy a release
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6: {}
+      - cache-pull@2: {}
+      - script@1:
+          title: Tag If Needed
+          inputs:
+            - content: |
+                #!/usr/bin/env bash
+                # fail if any commands fails
+                set -e
+                # debug log
+                set -x
+                
+                # Create a tag if one does not already exist for this commit
+                ./scripts/tag_branch.sh release
+      - script@1:
+          title: Build and Deploy
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # fail if any commands fails
+                set -e
+                # debug log
+                set -x
+                # Publish artifacts to S3
+                ./gradlew publish
+      - cache-push@2: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # fail if any commands fails
+                set -e
+                # debug log
+                set -x
+                
+                if [ "$BITRISE_BUILD_STATUS" = "1" ]; then
+                  echo "Notifying slack of build error"
+                  ./scripts/slack.sh "Failed to build $BITRISE_APP_TITLE"
+                else
+                  echo "Sending slack notification for successful build"
+                  ./scripts/slack.sh "Successfully published Network modules"  "good"
+                fi
+          is_always_run: true
+          title: Notify failures to Slack
