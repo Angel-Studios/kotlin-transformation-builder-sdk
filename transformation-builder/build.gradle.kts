@@ -39,3 +39,17 @@ kotlin {
         }
     }
 }
+
+publishing {
+    repositories {
+        maven {
+            name = "S3"
+            url = uri("s3://angelstudios-apps-artifacts.s3.amazonaws.com")
+            credentials(AwsCredentials::class) {
+                val credentials = utils.awsCredentials()
+                accessKey = credentials.accessKeyId()
+                secretKey = credentials.secretAccessKey()
+            }
+        }
+    }
+}

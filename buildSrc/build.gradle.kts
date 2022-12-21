@@ -10,7 +10,6 @@ repositories {
 }
 
 dependencies {
-    //val libs = catalogs.named("libs")
-    //implementation(libs.findLibrary("gradle-kotlin").get())
     implementation(libs.gradle.kotlin)
+    implementation(libs.aws.sdk.auth)
 }
