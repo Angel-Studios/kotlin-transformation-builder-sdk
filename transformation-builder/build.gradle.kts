@@ -1,59 +1,41 @@
-val publicationName = "kotlin-transformation-builder-sdk"
+import extensions.getGitTag
 
 plugins {
-    id("cloudinary_lib")
+    kotlin("multiplatform")
+    `maven-publish`
+    signing
 }
 
-dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    testImplementation(kotlin("test"))
-    testImplementation(kotlin("test-junit"))
-}
+group = "com.cloudinary"
+version = getGitTag()
 
-val sourcesJar by tasks.creating(Jar::class) {
-    archiveClassifier.set("sources")
-    from(project.the<SourceSetContainer>()["main"].allSource)
-}
-
-val javadocJar by tasks.creating(Jar::class) {
-    archiveClassifier.set("javadoc")
-    val s = "$buildDir/dokka/$publicationName"
-    println(s)
-    from(s)
-}
-
-publishing {
-    publications {
-        create<MavenPublication>(publicationName) {
-            groupId = properties["publishGroupId"].toString()
-            artifactId = publicationName
-            version = properties["version"].toString()
-            from(components["java"])
-            artifact(sourcesJar)
-            artifact(javadocJar)
-            pom.withXml {
-                asNode().apply {
-                    appendNode("description", properties["publishDescription"])
-                    appendNode("name", publicationName)
-                    appendNode("url", properties["githubUrl"])
-                    appendNode("licenses").appendNode("license").apply {
-                        appendNode("name", properties["licenseName"])
-                        appendNode("url", properties["licenseUrl"])
-                        appendNode("distribution", "repo")
-                    }
-                    appendNode("developers").appendNode("developer").apply {
-                        appendNode("id", properties["developerId"])
-                        appendNode("name", properties["developerName"])
-                    }
-                    appendNode("scm").apply {
-                        appendNode("url", properties["scmUrl"])
-                    }
-                }
+kotlin {
+    jvm()
+    js(IR) {
+        browser()
+        nodejs()
+    }
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlin.stdlib)
+                implementation(libs.uri)
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlin.test.annotations.common)
+            }
+        }
+        val jsMain by getting {
+            dependencies {
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.kotlin.test.junit)
             }
         }
     }
-}
-
-signing {
-    sign(publishing.publications[publicationName])
 }

@@ -1,0 +1,23 @@
+[versions]
+
+# Kotlin
+kotlin = "1.7.21"
+
+# Other
+uri = "0.4.0"
+
+##################################################################################################################################
+
+[libraries]
+
+# Plugins
+gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+# Kotlin
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+kotlin-test-annotations-common = { module = "org.jetbrains.kotlin:kotlin-test-annotations-common", version.ref = "kotlin" }
+
+# Other
+uri = { module = "com.chrynan.uri:uri-core", version.ref = "uri" }

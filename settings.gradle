@@ -1,9 +1,0 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
-}
-rootProject.name = 'kotlin-transformation-builder-sdk'
-include 'transformation-builder'
-include ':docs'
