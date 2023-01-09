@@ -1,6 +1,5 @@
 package com.cloudinary.util
 
-import com.chrynan.uri.core.Uri
 import com.cloudinary.util.Base64Coder.encodeString
 import com.cloudinary.util.Base64Coder.encodeURLSafeString
 
@@ -99,13 +98,6 @@ internal fun String.cldSmartUrlEncode() = URLEncoder.encode(this, "UTF-8")
     .replace("%2F", "/")
     .replace("%3A", ":")
     .replace("+", "%20")
-
-
-/**
- *
- */
-internal fun Uri.cldQueryAsMap() =
-    query?.split("&")?.associate { it.split("=").run { Pair(this[0], this[1]) } } ?: emptyMap()
 
 /**
  * Returns the base64 representation of this string

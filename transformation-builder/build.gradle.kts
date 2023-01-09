@@ -19,7 +19,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                implementation(libs.uri)
             }
         }
         val commonTest by getting {

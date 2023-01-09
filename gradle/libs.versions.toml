@@ -5,7 +5,6 @@ kotlin = "1.7.21"
 
 # Other
 aws-sdk = "2.19.0"
-uri = "0.4.0"
 
 ##################################################################################################################################
 
@@ -21,5 +20,4 @@ kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version
 kotlin-test-annotations-common = { module = "org.jetbrains.kotlin:kotlin-test-annotations-common", version.ref = "kotlin" }
 
 # Other
-uri = { module = "com.chrynan.uri:uri-core", version.ref = "uri" }
 aws-sdk-auth = { module = "software.amazon.awssdk:auth", version.ref = "aws-sdk" }
