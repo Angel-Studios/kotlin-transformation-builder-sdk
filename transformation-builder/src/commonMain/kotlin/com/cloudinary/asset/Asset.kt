@@ -1,30 +1,42 @@
 package com.cloudinary.asset
 
 import com.cloudinary.transformation.*
-import com.cloudinary.util.URLDecoder
-import com.cloudinary.util.cldIsHttpUrl
-import com.cloudinary.util.cldMergeSlashedInUrl
-import com.cloudinary.util.cldSmartUrlEncode
+import com.cloudinary.util.*
 
 internal const val DEFAULT_ASSET_TYPE = "image"
 internal const val DEFAULT_DELIVERY_TYPE = "upload"
+
+const val ASSET_TYPE_IMAGE = "image"
+const val ASSET_TYPE_VIDEO = "video"
 
 class Asset(
     // config
     baseUrl: String,
 
     // fields
+    version: String? = null,
+    publicId: String? = null,
+    extension: Format? = null,
+    urlSuffix: String? = null,
+    assetType: String = DEFAULT_ASSET_TYPE,
+    deliveryType: String? = null,
     private val transformation: Transformation? = null
 ) : BaseAsset(
     baseUrl,
+    version,
+    publicId,
+    extension,
+    urlSuffix,
+    assetType,
+    deliveryType,
 ) {
 
     override fun getTransformationString() = transformation?.toString()
 
     class Builder(
         baseUrl: String,
-    ) : BaseAssetBuilder(baseUrl), ITransformable<Builder> {
-
+        assetType: String = DEFAULT_ASSET_TYPE
+    ) : BaseAssetBuilder(baseUrl, assetType), ITransformable<Builder> {
         private var transformation: Transformation? = null
 
         fun transformation(transformation: Transformation) =
@@ -42,6 +54,12 @@ class Asset(
 
         fun build() = Asset(
             baseUrl,
+            version,
+            publicId,
+            extension,
+            urlSuffix,
+            assetType,
+            deliveryType,
             transformation
         )
     }
@@ -49,22 +67,51 @@ class Asset(
 
 @TransformationDsl
 abstract class BaseAsset constructor(
+    // config
     private val baseUrl: String,
+
+    // fields
+    private val version: String? = null,
+    private val publicId: String? = null,
+    private val extension: Format? = null,
+    private val urlSuffix: String? = null,
+    private val assetType: String = DEFAULT_ASSET_TYPE,
+    private val deliveryType: String? = null,
 ) {
-    fun generate(
-        id: String,
-        format: Format,
-    ): String {
-        var mutableSource = id
-        val finalizedSource = finalizeSource(mutableSource, format)
+    fun generate(source: String? = null): String? {
+        var mutableSource = source ?: publicId ?: return null
+        val httpSource = mutableSource.cldIsHttpUrl()
+
+        if (httpSource && ((deliveryType.isNullOrBlank() || deliveryType == "asset"))) {
+            return mutableSource
+        }
+
+        val finalizedSource = finalizeSource(mutableSource, extension, urlSuffix)
 
         mutableSource = finalizedSource.source
+        val sourceToSign = finalizedSource.sourceToSign
+
+        var mutableVersion = version
+        if (sourceToSign.contains("/") && !sourceToSign.cldHasVersionString() &&
+            !httpSource && mutableVersion.isNullOrBlank()
+        ) {
+            mutableVersion = "1"
+        }
+
+        mutableVersion = if (mutableVersion == null) "" else "v$mutableVersion"
 
         val transformationString = getTransformationString()
+        val finalizedResourceType = finalizeResourceType(
+            assetType,
+            deliveryType,
+            urlSuffix,
+        )
 
         return listOfNotNull(
             baseUrl,
+            finalizedResourceType,
             transformationString,
+            mutableVersion,
             mutableSource
         ).joinToString("/").cldMergeSlashedInUrl()
     }
@@ -75,22 +122,28 @@ abstract class BaseAsset constructor(
     abstract class BaseAssetBuilder
     internal constructor(
         protected val baseUrl: String,
-        protected var extension: Format? = null,
+        protected var assetType: String = DEFAULT_ASSET_TYPE
     ) {
 
         protected var version: String? = null
         protected var publicId: String? = null
+        protected var extension: Format? = null
+        protected var urlSuffix: String? = null
+        var deliveryType: String? = null
 
         fun version(version: String) = apply { this.version = version }
         fun publicId(publicId: String) = apply { this.publicId = publicId }
         fun extension(extension: Format) = apply { this.extension = extension }
-        fun extension(extension: String) = apply { this.extension = Format.custom(extension) }
+        fun urlSuffix(urlSuffix: String) = apply { this.urlSuffix = urlSuffix }
+        fun deliveryType(deliveryType: String) = apply { this.deliveryType = deliveryType }
+        fun assetType(assetType: String) = apply { this.assetType = assetType }
     }
 }
 
 private fun finalizeSource(
     source: String,
-    extension: Any?
+    extension: Format?,
+    urlSuffix: String?
 ): FinalizedSource {
     var mutableSource = source.cldMergeSlashedInUrl()
     var sourceToSign: String
@@ -104,6 +157,10 @@ private fun finalizeSource(
             throw RuntimeException(e)
         }
         sourceToSign = mutableSource
+        if (!urlSuffix.isNullOrBlank()) {
+            require(!(urlSuffix.contains(".") || urlSuffix.contains("/"))) { "url_suffix should not include . or /" }
+            mutableSource = "$mutableSource/$urlSuffix"
+        }
         if (extension != null) {
             mutableSource = "$mutableSource.$extension"
             sourceToSign = "$sourceToSign.$extension"
@@ -115,10 +172,11 @@ private fun finalizeSource(
 
 private fun finalizeResourceType(
     resourceType: String?,
-    urlSuffix: String?
+    type: String?,
+    urlSuffix: String?,
 ): String? {
     var mutableResourceType: String? = resourceType ?: DEFAULT_ASSET_TYPE
-    var mutableType: String? = DEFAULT_DELIVERY_TYPE
+    var mutableType: String? = type ?: DEFAULT_DELIVERY_TYPE
 
     if (!urlSuffix.isNullOrBlank()) {
         if (mutableResourceType == "image" && mutableType == "upload") {

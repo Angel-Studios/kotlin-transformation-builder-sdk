@@ -1,6 +1,7 @@
 package com.cloudinary.asset
 
 import com.cloudinary.transformation.Action
+import com.cloudinary.transformation.Format
 import com.cloudinary.transformation.ITransformable
 import com.cloudinary.transformation.ImageTransformation
 
@@ -9,12 +10,23 @@ class Image(
     baseUrl: String,
 
     // fields
+    version: String? = null,
+    publicId: String? = null,
+    extension: Format? = null,
+    urlSuffix: String? = null,
+    deliveryType: String? = null,
     private val transformation: ImageTransformation? = null
 ) : BaseAsset(
     baseUrl,
+    version,
+    publicId,
+    extension,
+    urlSuffix,
+    ASSET_TYPE_IMAGE,
+    deliveryType,
 ) {
     class Builder(baseUrl: String) :
-        BaseAssetBuilder(baseUrl), ITransformable<Builder> {
+        BaseAssetBuilder(baseUrl, ASSET_TYPE_IMAGE), ITransformable<Builder> {
 
         private var transformation: ImageTransformation? = null
 
@@ -31,6 +43,11 @@ class Image(
 
         fun build() = Image(
             baseUrl,
+            version,
+            publicId,
+            extension,
+            urlSuffix,
+            deliveryType,
             transformation
         )
     }
