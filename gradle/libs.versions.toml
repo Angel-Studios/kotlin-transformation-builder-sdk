@@ -1,7 +1,7 @@
 [versions]
 
 # Kotlin
-kotlin = "1.7.21"
+kotlin = "1.8.20"
 
 # Other
 aws-sdk = "2.19.0"
