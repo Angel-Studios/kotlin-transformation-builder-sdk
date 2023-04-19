@@ -12,6 +12,7 @@ version = getGitTag()
 kotlin {
     jvm()
     js(IR) {
+        useEsModules()
         browser()
         nodejs()
     }
